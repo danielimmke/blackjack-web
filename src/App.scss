@@ -2,22 +2,39 @@
 
 body {
   background: #14522B;
-  padding: 3em;
+  margin: 0;
 }
+header {
+  background-color: darken(#14522B, 7%);
+  padding: .5em;
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-family: Fraunces;
+    text-transform: uppercase;
+    color: lighten(#BF9822, 10%);
+    text-shadow: rgba(0,0,0,.4) 1px 1px 0;
+  }
+}
+
 .playing-card {
-  max-width: 200px;
+  max-width: 10em;
   border-radius: 7px;
   border: rgba(0,0,0,.1) 1px solid;
   box-shadow: rgba(0,0,0,.2) 0 1px 2px;
 }
-.overlapping {
+.card-list {
   display: flex;
-  gap: 1em;
-  .playing-card + .playing-card {
+  gap: .75em;
+  .playing-card {
     position: relative;
     top: 2em;
-    left: -3em;
+    left: -4em;
     transition: .2s all;
+    &:first-child {
+      top: 0;
+      left: 0;
+    }
   }
   &:hover .playing-card + .playing-card {
     top: 0;

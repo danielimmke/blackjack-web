@@ -142,7 +142,9 @@ function App() {
 
   return (
     <div className="App">
-      <div className="overlapping">
+      <header><h1>Blackjack</h1></header>
+      <div className="card-list overlapping">
+        <PlayingCard card={shoe.draw()!} />
         <PlayingCard card={shoe.draw()!} />
         <PlayingCard card={shoe.draw()!} />
       </div>
