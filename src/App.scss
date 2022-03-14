@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600&display=swap');
+
+body {
+  background: #14522B;
+  padding: 3em;
+}
+.playing-card {
+  max-width: 200px;
+  border-radius: 7px;
+  border: rgba(0,0,0,.1) 1px solid;
+  box-shadow: rgba(0,0,0,.2) 0 1px 2px;
+}
+.overlapping {
+  display: flex;
+  gap: 1em;
+  .playing-card + .playing-card {
+    position: relative;
+    top: 2em;
+    left: -3em;
+    transition: .2s all;
+  }
+  &:hover .playing-card + .playing-card {
+    top: 0;
+    left: 0;
+    transition: .2s all;
+  }
+}
