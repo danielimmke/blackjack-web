@@ -1,12 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@600&display=swap');
 
+$cardWidth: 15em;
+
 body {
   background: #14522B;
   margin: 0;
 }
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 header {
   background-color: darken(#14522B, 7%);
-  padding: .5em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  div.controls {
+    padding: .5em;
+    background-color: rgba(0,0,0,.3)
+  }
   h1 {
     margin: 0;
     text-align: center;
@@ -17,25 +32,61 @@ header {
   }
 }
 
-.playing-card {
-  max-width: 20em;
-}
-.card-list {
+main {
+  flex-grow: 1;
   display: flex;
-  gap: .75em;
-  .playing-card {
-    position: relative;
-    top: 2em;
-    left: -4em;
-    transition: .2s all;
-    &:first-child {
-      top: 0;
-      left: 0;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 2em 4em;
+  justify-content: space-between;
+  gap: 3em;
+  .dealer-spot {
+    .dealer-cards {
+      justify-content: center;
+      flex-direction: row-reverse;
+      display: flex;
+      gap: 1.5em;
     }
   }
-  &:hover .playing-card + .playing-card {
-    top: 0;
-    left: 0;
-    transition: .2s all;
+  .player-spots {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row-reverse;
+    .player-spot {
+      width: 17em;
+      position: relative;
+      .card-list {
+        z-index: 2;
+        position: relative;
+        .playing-card {
+          position: absolute;
+          top: 1.5em;
+          left: 2.5em;
+          transition: .2s all;
+          z-index: 1;
+        }
+      .player-spot-placeholder {
+        position: relative;
+        top: 0;
+        background-color: red;
+      }
+    }
+    .player-name {
+      color: rgb(252, 225, 225);
+      display: block;
+      text-align: center;
+      font-size: 1.5em;
+    }
   }
+}
+
+.playing-card {
+  width: $cardWidth;
+  filter: drop-shadow(0 3px 5px rgb(0 0 0 / 0.4));
+}
+  // &:hover .playing-card + .playing-card {
+  //   top: 0;
+  //   left: 0;
+  //   transition: .2s all;
+  // }
 }

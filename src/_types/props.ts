@@ -9,4 +9,5 @@ export interface PlayingCardProps {
   faceDown?: boolean;
   width?: number;
   height?: number;
+  style?: object;
 }

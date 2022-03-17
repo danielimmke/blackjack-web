@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { assign, createMachine, DelayExpr } from 'xstate';
+import { useMachine } from '@xstate/react';
 import './App.scss';
 import { Card, Suite, Colors } from './_types/interfaces';
 import { PlayingCardProps } from './_types/props';
@@ -21,7 +23,9 @@ const cardTypes: { [key: string]: (string | number)[] } = {
   'ACE': ['A', 11],
 }
 
-// Creates a deck
+/**
+ * Deck
+ */
 class Deck {
   list: Card[]
 
@@ -57,6 +61,9 @@ class Deck {
   }
 }
 
+/**
+ * Shoe
+ */
 class Shoe {
   private list: Card[];
   private numDecks: number;
@@ -74,6 +81,10 @@ class Shoe {
   draw() {
     return this.list.pop();
   }
+
+  public get remaining() {
+    return this.list.length;
+  }
 }
 
 const HeartIcon = () => <g><rect width="150" height="150" fill="none" /><path d="M65.3208292,150 C62.8397499,140.651801 59.2892399,131.839622 54.6692991,123.563465 C50.0493584,115.287307 41.2372491,102.487135 28.2329713,85.1629503 C18.650872,72.4699828 12.7048372,64.3653516 10.3948667,60.8490566 C6.71602501,55.2744425 4.06383679,50.1715266 2.43830207,45.5403087 C0.812767357,40.9090909 0,36.1921097 0,31.3893653 C0,22.4699828 2.95162882,15.0300172 8.85488646,9.06946828 C14.7581441,3.10891938 22.0730503,0.12864494 30.7996052,0.12864494 C39.4406055,0.12864494 46.9693978,3.2161235 53.3859823,9.3910806 C58.2625863,14.1080617 62.2408687,21.0120069 65.3208292,30.1029159 C68.1441264,19.9828473 72.6143468,12.4356775 78.7314906,7.46140652 C84.8486344,2.48713551 91.6288255,0 99.0720633,0 C107.713063,0 115.02797,2.95883362 121.016782,8.87650086 C127.005594,14.7941681 130,21.7838765 130,29.845626 C130,37.135506 128.267522,44.6397941 124.802566,52.3584906 C121.337611,60.077187 114.557421,70.3259005 104.461994,83.1046312 C91.4577162,99.5711836 82.2820007,112.542882 76.934847,122.019726 C71.5876934,131.49657 67.716354,140.823328 65.3208292,150 Z" transform="translate(10, 0)" /></g>
@@ -88,16 +99,16 @@ const iconDict: { [key: string]: any } = {
   Spades: <SpadeIcon />
 }
 
-const PlayingCard = ({ card, faceDown = false, width = 500, height = 750 }:PlayingCardProps) => {
+const PlayingCard = ({ card, faceDown = false, width = 500, height = 750, style = {} }:PlayingCardProps) => {
   if(faceDown) return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="playing-card hidden" fill="#2C65F5">
+    <svg viewBox={`0 0 ${width} ${height}`} className="playing-card hidden" fill="#2C65F5" style={style}>
       <defs>
         <pattern id="autumn" x="-10" y="5" width="88" height="24" patternUnits="userSpaceOnUse">
           <path d="M10 0l30 15 2 1V2.18A10 10 0 0 0 41.76 0H39.7a8 8 0 0 1 .3 2.18v10.58L14.47 0H10zm31.76 24a10 10 0 0 0-5.29-6.76L4 1 2 0v13.82a10 10 0 0 0 5.53 8.94L10 24h4.47l-6.05-3.02A8 8 0 0 1 4 13.82V3.24l31.58 15.78A8 8 0 0 1 39.7 24h2.06zM78 24l2.47-1.24A10 10 0 0 0 86 13.82V0l-2 1-32.47 16.24A10 10 0 0 0 46.24 24h2.06a8 8 0 0 1 4.12-4.98L84 3.24v10.58a8 8 0 0 1-4.42 7.16L73.53 24H78zm0-24L48 15l-2 1V2.18A10 10 0 0 1 46.24 0h2.06a8 8 0 0 0-.3 2.18v10.58L73.53 0H78z" />
         </pattern>
       </defs>
       <rect width={width} height={height} rx="20" ry="20" fill="#fff" />
-      <rect width={width - 40} height={height - 40} transform="translate(20, 20)" fill={`url(#autumn)`} rx="10" ry="10" stroke="#2C65F5" strokeWidth="3" strokeLinejoin='round' />
+      <rect width={width - 40} height={height - 40} transform="translate(20, 20)" fill={`url(#autumn)`} rx="10" ry="10" stroke="#2C65F5" strokeWidth="5" strokeLinejoin="round" />
     </svg>
   )
 
@@ -119,8 +130,8 @@ const PlayingCard = ({ card, faceDown = false, width = 500, height = 750 }:Playi
   let xPos = offsets[value] ? offsets[value] : 3;
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="playing-card" fill={fillColor}>
-      <rect width={width} height={height} rx="20" ry="20" fill="#FFF" />
+    <svg viewBox={`0 0 ${width} ${height}`} className="playing-card" fill={fillColor} style={style}>
+      <rect width={width} height={height} rx="20" ry="20" fill="#FFF" stroke="rgba(0,0,0,.3)" strokeWidth="3" strokeLinejoin="round" />
       <g>
         <g transform="translate(48 18)">
           <g transform="translate(-5 110) scale(0.4)">
@@ -144,36 +155,120 @@ const PlayingCard = ({ card, faceDown = false, width = 500, height = 750 }:Playi
       </g>
     </svg>
   )
-} 
-
+}
 class Player {
-  name: string
+  name: string;
+  cards: Card[]
 
-  constructor(name: string) {
+  constructor(name?: string) {
     this.name = name ? name : 'Player 1'
+    this.cards = []
+  }
+
+  get count() {
+    return 5
+    // return this.cards.reduce((a, b) => cardTypes[a.value][1]! + cardTypes[b.value][1]!)
   }
 }
 
+const dealCards = ({players, dealer, shoe}: {players: Player[], dealer: Player, shoe: Shoe}) => {
+  for(let player of [...players, dealer]) {
+    player.cards.push( shoe.draw()! )
+  }
+  for(let player of [...players, dealer]) {
+    player.cards.push( shoe.draw()! )
+  }
+}
+
+const stateMachine = createMachine(
+  {
+    id: 'blackjack',
+    initial: 'placeBets',
+    context: {
+      shoe: new Shoe(),
+      players: [new Player('Dan'), new Player('Juan')],
+      dealer: new Player()
+    },
+    states: {
+      placeBets: {
+        on: {
+          BEGIN_ROUND: {
+            target: 'player',
+            actions: ['dealCards']
+          }
+        }
+      },
+      player: {
+        on: {
+          HIT: {
+            actions: ['drawCard']
+          },
+          BUST: 'dealer',
+          STAY: 'dealer'
+        }
+      },
+      dealer: {
+        on: { BUST: 'endRound', STAY: 'endRound'}
+      },
+      endRound: {
+        on: { NEW_ROUND: 'placeBets'}
+      }
+    }
+  },
+  {
+    actions: {
+      dealCards,
+      drawCard: () => console.log('drawing a card')
+    }
+  }
+);
+
 function App() {
-  const [shoe, setShoe] = useState<Shoe>(new Shoe());
+  const [state, send] = useMachine(stateMachine);
 
-  const [dealer, setDealer] = useState([])
+  const { players, dealer, shoe }: { players: Player[], dealer: Player, shoe: Shoe } = state.context;
 
-  // Hit
-  const [players, setPlayers] = useState<Player[]>([])
+  const PlayerSpot = ({player} : {player: Player}) => {
+    const hasCards = player.cards.length > 0
 
-  // Deal card
-  const dealCards = () => {
-    // Deal 2 cards to each player
+    return (
+      <div className="player-spot">
+        {hasCards && (<div className="card-list overlapping">
+          {player.cards.map((card, idx: number) => <PlayingCard card={card} style={idx > 0 ? {left: `${1.5 * idx * -1}em`, top: `${-.5 * idx}em`} : {}} />)}
+        </div>)}
+
+        {/* Background */}
+        <svg viewBox="0 0 500 750" className="player-spot-placeholder">
+          <rect width={490} height={740} x="5" y="5" fill="#0F3A1E" stroke="#D2DAD5" strokeWidth="10" rx="30"/>
+        </svg>
+        <span className="player-name">{player.name}</span>
+      </div>
+    )
   }
 
   return (
     <div className="App">
-      {/* <header><h1>Blackjack</h1></header> */}
-      <div className="card-list overlapping">
-        <PlayingCard card={shoe.draw()!} />
-        <PlayingCard card={shoe.draw()!} faceDown={true} />
-      </div>
+      <header>
+        <div className="controls" style={{float: 'left'}}>
+          <span onClick={() => send('BEGIN_ROUND')} style={{textDecoration: 'underline', cursor: 'pointer'}}>Begin Round</span><br />
+          Current State: ${state.value}
+        </div>
+        <h1>Blackjack</h1>
+        <div className="information">
+          Cards remaining in Shoe: {shoe.remaining}&nbsp;&nbsp;&nbsp;<br />
+          Number of decks: 6
+        </div>
+      </header>
+      <main>
+        <section className="dealer-spot">
+          <div className="dealer-cards">
+           {dealer.cards?.map((card, idx) => <PlayingCard card={card} faceDown={idx === 0} />)}
+          </div>
+        </section>
+        <section className="player-spots">
+          {players.map((player, idx) => <PlayerSpot player={player} key={player.name + idx} />)}
+        </section>
+      </main>
     </div>
   );
 }
