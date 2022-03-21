@@ -48,6 +48,13 @@ main {
       gap: 1.5em;
     }
   }
+  .player-actions {
+    position: absolute;
+    right: -4em;
+    color: #ffff;
+    display: flex;
+    flex-direction: column;
+  }
   .player-spots {
     display: flex;
     justify-content: space-around;
@@ -55,6 +62,11 @@ main {
     .player-spot {
       width: 17em;
       position: relative;
+      &.active {
+        .player-name {
+          color: yellow;
+        }
+      }
       .card-list {
         z-index: 2;
         position: relative;
