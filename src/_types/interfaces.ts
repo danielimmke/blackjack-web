@@ -23,7 +23,7 @@ export interface Round {
 
 }
 
-export const cardTypes: { [key: string]: (string | number)[] } = {
+export const cardTypes: { [key: string]: [string, number] } = {
   'TWO': ['2', 2],
   'THREE': ['3', 3],
   'FOUR': ['4', 4],
@@ -36,7 +36,7 @@ export const cardTypes: { [key: string]: (string | number)[] } = {
   'JACK': ['J',10],
   'QUEEN': ['Q',10],
   'KING': ['K',10],
-  'ACE': ['A', 11],
+  'ACE': ['A', 1],
 }
 
 export interface contextSchema {
@@ -44,4 +44,9 @@ export interface contextSchema {
   currentPlayer: number;
   players: Player[];
   dealer: Player;
+}
+
+export interface PlayerState {
+  players: Player[];
+  currentPlayer: number;
 }

@@ -3,7 +3,7 @@ import { assign, createMachine } from 'xstate';
 import { useMachine } from '@xstate/react';
 import './App.scss';
 
-import { contextSchema } from './_types/interfaces';
+import { contextSchema, PlayerState } from './_types/interfaces';
 
 import Shoe from './classes/Shoe';
 
@@ -20,15 +20,13 @@ const dealCards = ({players, dealer, shoe}: {players: Player[], dealer: Player, 
   }
 }
 
-const drawCard = ({ shoe, players, currentPlayer }: { shoe: Shoe, players: Player[], currentPlayer: number}) => {
-  let newPlayers = [...players];
+const drawCard = assign({
+  players: (context: any) => {
+    context.players[context.currentPlayer].cards.push(context.shoe.draw());
 
-  players[currentPlayer].cards.push(shoe.draw()!);
-
-  assign({
-    players: newPlayers
-  })
-}
+    return context.players;
+  }
+});
 
 const incrementPlayer = assign({
     currentPlayer: ({currentPlayer}: {currentPlayer: number}) => currentPlayer + 1
@@ -49,55 +47,67 @@ const stateMachine = createMachine(
           shoe: new Shoe(),
           players: samplePlayers,
           dealer: new Player('Dealer'),
-          currentPlayer: 0
+          currentPlayer: null
         }),
         always: 'placeBets'
       },
       placeBets: { // TODO
-        always: 'dealingCards', 
+        on: {
+          BEGIN_ROUND: [
+            {target: 'dealingCards'}
+          ]
+        }
       },
       dealingCards: {
-        entry: dealCards,
+        entry: [
+          dealCards,
+          assign({currentPlayer: () => 0})
+        ],
         always: 'playerTurn'
       },
       playerTurn: {
-        id: "Player Turn",
-        initial: "notBusted",
+        id: 'Player Turn',
+        initial: 'notBusted',
         states: {
-          'notBusted': {
+          notBusted: {
             on: {
-              HIT: [
-                {
-                  actions: drawCard
-                },
-                {
-                  target: "bust",
-                  cond: { type: "tooHigh" },
-                  
-                },
-                {
-                  target: "stay",
-                  cond: { type: "exactlyTwentyOne" },
-                }
-              ],
+              HIT: {
+                actions: drawCard,
+              },
               STAY: "stay",
             },
+            always: [
+              {
+                target: 'bust',
+                cond: 'tooHigh', // Bust if they go higher than 21
+              },
+              {
+                target: 'stay',
+                cond: 'exactlyTwentyOne', // Automatically end turn if they hit to 21
+              },
+            ]
           },
           stay: {
-            type: "final",
+            type: "final"
           },
           bust: {
-            type: "final",
-          },
+            type: "final"
+          }
         },
-        onDone: {
-          actions: [incrementPlayer],
-          target: 'playerTurn'
-        }
+        onDone: [
+          {
+            actions: incrementPlayer,
+            target: 'playerTurn',
+            cond: 'remainingPlayers',
+          },
+          {
+            target: 'dealerTurn'
+          },
+        ]
       },
       dealerTurn: { // TODO
-        entry: () => console.log('Dealer turn'),
-        always: 'endRound'
+        entry: [assign({currentPlayer: () => null}), () => console.log('dealerTurn')],
+        // always: 'endRound'
       },
       endRound: {
         type: "final",
@@ -113,8 +123,9 @@ const stateMachine = createMachine(
       calculateWin: () => console.log('Round is over')
     },
     guards: {
-      exactlyTwentyOne: () => true,
-      tooHigh: () => true,
+      exactlyTwentyOne: ({players, currentPlayer}: PlayerState) => players[currentPlayer].count === 21,
+      tooHigh: ({players, currentPlayer}: PlayerState) => players[currentPlayer].count > 21,
+      remainingPlayers: ({players, currentPlayer}: PlayerState) => (currentPlayer < players.length - 1)
     },
   }
 );
@@ -133,10 +144,13 @@ return subscription.unsubscribe;
   const { players, dealer, shoe, currentPlayer }: { players: Player[], dealer: Player, shoe: Shoe, currentPlayer: number } = state.context;
 
   const PlayerSpot = ({player, idx} : {player: Player, idx: number}) => {
+    console.log(state.context)
     const hasCards = player.cards.length > 0
     const classes = ['player-spot'];
 
-    if(idx === currentPlayer) classes.push('active');
+    const activePlayer = (idx === currentPlayer);
+
+    if(activePlayer) classes.push('active');
 
     return (
       <div className={classes.join(' ')}>
@@ -145,14 +159,14 @@ return subscription.unsubscribe;
         </div>)}
         {/* Player actions */ }
         <ul className="player-actions">
-          <button onClick={() => send('HIT')}>Hit</button>
-          <button onClick={() => send('STAY')}>Stay</button>
+          <button onClick={() => send('HIT')} disabled={!activePlayer}>Hit</button>
+          <button onClick={() => send('STAY')} disabled={!activePlayer}>Stay</button>
         </ul>
         {/* Background */}
         <svg viewBox="0 0 500 750" className="player-spot-placeholder">
           <rect width={490} height={740} x="5" y="5" fill="#0F3A1E" stroke="#D2DAD5" strokeWidth="10" rx="30"/>
         </svg>
-        <span className="player-name">{player.name}</span>
+        <span className="player-name">{player.name} {player.count}</span>
       </div>
     )
   }
@@ -163,6 +177,7 @@ return subscription.unsubscribe;
         <div className="controls" style={{float: 'left'}}>
           <span onClick={() => send('BEGIN_ROUND')} style={{textDecoration: 'underline', cursor: 'pointer'}}>Begin Round</span><br />
           {/* Current State: ${state.value} */}
+          {/* {console.log(state.value)} */}
         </div>
         <h1>Blackjack</h1>
         <div className="information">

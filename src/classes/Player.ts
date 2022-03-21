@@ -1,5 +1,4 @@
-import { Card } from '../_types/interfaces';
-import { StateMachine, MachineConfig } from 'xstate';
+import { Card, cardTypes } from '../_types/interfaces';
 
 export default class Player {
   name: string;
@@ -11,7 +10,13 @@ export default class Player {
   }
 
   get count() {
-    return 5
-    // return this.cards.reduce((a, b) => cardTypes[a.value][1]! + cardTypes[b.value][1]!)
+    let res = 0;
+    
+    this.cards.forEach(card => {
+      // if(card.value === 'ACE')
+      res += cardTypes[card.value][1]
+    })
+
+    return res;
   }
 }
