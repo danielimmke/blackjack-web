@@ -1,5 +1,4 @@
 import Player from '../classes/Player';
-import Deck from '../classes/Deck';
 import Shoe from '../classes/Shoe';
 
 export type Suite = 'Diamonds' | 'Hearts' | 'Spades' | 'Clubs';
