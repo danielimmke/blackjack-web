@@ -72,8 +72,6 @@ const calculateResults = assign({
       }
     }
 
-    context.players[context.currentPlayer].cards = [];
-
     return context.players;
   }
 });
@@ -81,8 +79,6 @@ const calculateResults = assign({
 const incrementPlayer = assign({
     currentPlayer: ({currentPlayer}: {currentPlayer: number}) => currentPlayer + 1
 })
-
-const dealerStartCheck = () => send('HIT')
 
 const samplePlayers = [new Player('Dealer', true), new Player('Dan'), new Player('Juan')];
 
@@ -143,7 +139,7 @@ const stateMachine = createMachine(
           },
           bust: {
             type: "final",
-            entry: [takeCards, setBustedStatus]
+            entry: [setBustedStatus]
           }
         },
         onDone: [
@@ -193,7 +189,6 @@ const stateMachine = createMachine(
       endRound: {
         type: "final",
         entry: calculateResults
-        // TODO: Auto start a new round?
       }
     }
   },
@@ -202,8 +197,7 @@ const stateMachine = createMachine(
       dealCards,
       drawCard,
       takeCards,
-      setBustedStatus,
-      dealerStartCheck
+      setBustedStatus
     },
     guards: {
       seventeenOrHigher: ({players, currentPlayer}: PlayerState) => players[currentPlayer].count >= 17,
